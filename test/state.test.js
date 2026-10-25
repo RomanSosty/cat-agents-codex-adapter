@@ -1,7 +1,9 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fixtures = require('./fixtures/desktop-events.json');
-const { SessionStateMachine } = require('../src/state');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { SessionStateMachine } from '../src/state.js';
+
+const fixtures = JSON.parse(fs.readFileSync(new URL('./fixtures/desktop-events.json', import.meta.url), 'utf8'));
 
 const A = 'gui-a:87315:start-a';
 const B = 'gui-b:89184:start-b';

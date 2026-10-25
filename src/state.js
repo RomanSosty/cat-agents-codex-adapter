@@ -1,5 +1,7 @@
-const path = require('node:path');
-const crypto = require('node:crypto');
+// Builds Cat Office snapshots from Codex hook events. Events may arrive late or
+// out of order, so each session keeps ordering and tool-correlation metadata.
+import path from 'node:path';
+import crypto from 'node:crypto';
 
 const TURN_EVENTS = new Set(['UserPromptSubmit', 'PreToolUse', 'PermissionRequest', 'PostToolUse', 'Stop']);
 const PRIORITY = { UserPromptSubmit: 0, PreToolUse: 1, PermissionRequest: 2, PostToolUse: 3, Stop: 4 };
@@ -7,7 +9,8 @@ const PRIORITY = { UserPromptSubmit: 0, PreToolUse: 1, PermissionRequest: 2, Pos
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
   if (value && typeof value === 'object') {
-    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(',')}}`;
+    const entries = Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`);
+    return `{${entries.join(',')}}`;
   }
   return JSON.stringify(value);
 }
@@ -17,7 +20,7 @@ function inputKey(event) {
     return event.tool_input_key;
   }
   if (!event.tool_name || event.tool_input === undefined) return null;
-  // Input is hashed in memory and never included in a snapshot or fixture output.
+  // Correlate permission and tool events without retaining their input.
   return crypto.createHash('sha256').update(event.tool_name + '\0' + stableJson(event.tool_input)).digest('hex');
 }
 
@@ -30,14 +33,16 @@ function positionAfter(at, priority, session) {
   return at > session.lastAt || (at === session.lastAt && priority > session.lastPriority);
 }
 
-class SessionStateMachine {
+// --- session lifecycle ------------------------------------------------------
+
+export class SessionStateMachine {
   constructor() {
     this.processId = null;
     this.sessions = new Map();
     this.ended = new Map();
   }
 
-  // processId must identify one GUI-process lifetime, e.g. executable path + PID + start time.
+  // A process ID identifies one desktop lifetime, including its start time.
   setProcess(processId) {
     if (processId !== null && (typeof processId !== 'string' || !processId)) {
       throw new TypeError('processId must be a nonempty string or null');
@@ -74,7 +79,9 @@ class SessionStateMachine {
       this.ended.delete(id);
     }
 
-    if (TURN_EVENTS.has(kind) && (typeof event.turn_id !== 'string' || !event.turn_id)) return false;
+    if (TURN_EVENTS.has(kind) && (typeof event.turn_id !== 'string' || !event.turn_id)) {
+      return false;
+    }
     if (!session && kind === 'Stop') return false;
 
     if (!session) {
@@ -82,11 +89,23 @@ class SessionStateMachine {
       const cwd = typeof event.cwd === 'string' ? event.cwd : '';
       const project = cwd ? path.basename(path.normalize(cwd)) : 'Codex';
       session = {
-        id, source: 'codex', name: project, cwd, project,
-        status: 'idle', statusSince: at, startedAt: at, activity: null, subagents: [],
-        turnId: null, lastAt: -Infinity, lastPriority: -1,
+        id,
+        source: 'codex',
+        name: project,
+        cwd,
+        project,
+        status: 'idle',
+        statusSince: at,
+        startedAt: at,
+        activity: null,
+        subagents: [],
+        turnId: null,
+        lastAt: -Infinity,
+        lastPriority: -1,
         seenTurns: new Set(),
-        activeToolUseId: null, waitingInputKey: null, waitingToolName: null,
+        activeToolUseId: null,
+        waitingInputKey: null,
+        waitingToolName: null,
       };
       this.sessions.set(id, session);
     }
@@ -115,7 +134,7 @@ class SessionStateMachine {
     const priority = PRIORITY[kind];
     if (!positionAfter(at, priority, session)) return false;
 
-    // A delayed prompt hook must not overwrite activity already seen in its turn.
+    // A delayed prompt cannot overwrite tool activity from the same turn.
     if (kind === 'UserPromptSubmit' && session.lastAt !== -Infinity) return false;
 
     if (kind === 'PostToolUse') {
@@ -145,7 +164,7 @@ class SessionStateMachine {
       return true;
     }
     if (kind === 'PreToolUse') {
-      // A permission hook can arrive before this hook for the same call.
+      // PermissionRequest may arrive before PreToolUse for the same call.
       if (session.status !== 'waiting') {
         if (session.status !== 'busy') session.statusSince = at;
         session.status = 'busy';
@@ -198,4 +217,4 @@ class SessionStateMachine {
   }
 }
 
-module.exports = { SessionStateMachine, fingerprintToolInput: inputKey };
+export { inputKey as fingerprintToolInput };

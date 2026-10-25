@@ -2,7 +2,7 @@
   "name": "cat-agents-codex-adapter",
   "version": "0.0.0",
   "private": true,
-  "type": "commonjs",
+  "type": "module",
   "engines": { "node": ">=20" },
   "scripts": {
     "test": "node --test test/*.test.js",

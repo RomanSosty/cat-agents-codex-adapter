@@ -1,6 +1,6 @@
-const { fingerprintToolInput } = require('./state');
+import { fingerprintToolInput } from './state.js';
 
-function sanitizeHookEvent(source) {
+export function sanitizeHookEvent(source) {
   if (!source || typeof source !== 'object' ||
       typeof source.session_id !== 'string' || !source.session_id ||
       typeof source.hook_event_name !== 'string') return null;
@@ -15,5 +15,3 @@ function sanitizeHookEvent(source) {
   if (inputKey) event.tool_input_key = inputKey;
   return event;
 }
-
-module.exports = { sanitizeHookEvent };

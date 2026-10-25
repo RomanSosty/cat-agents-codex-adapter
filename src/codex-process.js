@@ -1,9 +1,9 @@
-const { execFile } = require('node:child_process');
-const { promisify } = require('node:util');
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
-function parseProcesses(output) {
+export function parseProcesses(output) {
   return output.split('\n').flatMap(line => {
     const match = line.match(/^\s*(\d+)\s+(\d+)\s+(.{24})\s+(.+)$/);
     return match ? [{
@@ -13,7 +13,7 @@ function parseProcesses(output) {
   });
 }
 
-function desktopProcess(processes) {
+export function desktopProcess(processes) {
   const gui = processes.find(item =>
     /^\/Applications\/(ChatGPT|Codex)\.app\/Contents\/MacOS\/\1(?:\s|$)/.test(item.command));
   if (!gui) return null;
@@ -29,11 +29,9 @@ function desktopProcess(processes) {
   };
 }
 
-async function findDesktopProcess() {
+export async function findDesktopProcess() {
   const { stdout } = await execFileAsync('/bin/ps', ['-axo', 'pid=,ppid=,lstart=,command='], {
     timeout: 2000, maxBuffer: 8 * 1024 * 1024,
   });
   return desktopProcess(parseProcesses(stdout));
 }
-
-module.exports = { parseProcesses, desktopProcess, findDesktopProcess };

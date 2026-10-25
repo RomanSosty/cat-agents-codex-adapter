@@ -1,14 +1,15 @@
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const EVENTS = ['SessionStart', 'UserPromptSubmit', 'PreToolUse', 'PermissionRequest', 'PostToolUse', 'Stop', 'SessionEnd'];
 const MARKER = 'CAT_AGENTS_CODEX_ADAPTER=1';
-const HOOK_SCRIPT = path.join(__dirname, 'hook.js');
+const HOOK_SCRIPT = fileURLToPath(new URL('./hook.js', import.meta.url));
 
 const quote = value => `'${String(value).replaceAll("'", "'\\''")}'`;
 
-function hookCommand(nodePath = process.execPath, script = HOOK_SCRIPT) {
+export function hookCommand(nodePath = process.execPath, script = HOOK_SCRIPT) {
   return `${MARKER} ${quote(nodePath)} ${quote(script)}`;
 }
 
@@ -17,7 +18,7 @@ function isOurs(hook, script = HOOK_SCRIPT) {
     hook.command.includes(MARKER) && hook.command.includes(quote(script));
 }
 
-function editHooks({ action, target = path.join(os.homedir(), '.codex', 'hooks.json'),
+export function editHooks({ action, target = path.join(os.homedir(), '.codex', 'hooks.json'),
                      nodePath = process.execPath, script = HOOK_SCRIPT } = {}) {
   if (!['install', 'remove'].includes(action)) throw new TypeError('action must be install or remove');
   const existed = fs.existsSync(target);
@@ -60,4 +61,4 @@ function editHooks({ action, target = path.join(os.homedir(), '.codex', 'hooks.j
   return { changed: true, target };
 }
 
-module.exports = { EVENTS, hookCommand, editHooks };
+export { EVENTS };

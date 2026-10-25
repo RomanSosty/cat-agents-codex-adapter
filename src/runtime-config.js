@@ -1,14 +1,15 @@
-const fs = require('node:fs');
-const crypto = require('node:crypto');
-const path = require('node:path');
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(__dirname, '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RUN_DIR = process.env.CAT_CODEX_RUN_DIR || path.join(ROOT, 'run');
 const SOCKET_PATH = path.join(RUN_DIR, 'adapter.sock');
 const TOKEN_FILE = path.join(RUN_DIR, 'cat-office-token');
 const OFFICE_URL = process.env.CAT_OFFICE_URL || 'http://127.0.0.1:4317';
 
-function localToken() {
+export function localToken() {
   if (process.env.CAT_AGENTS_EXTERNAL_TOKEN) return process.env.CAT_AGENTS_EXTERNAL_TOKEN;
   fs.mkdirSync(RUN_DIR, { recursive: true, mode: 0o700 });
   try {
@@ -21,4 +22,4 @@ function localToken() {
   return fs.readFileSync(TOKEN_FILE, 'utf8').trim();
 }
 
-module.exports = { ROOT, RUN_DIR, SOCKET_PATH, OFFICE_URL, localToken };
+export { ROOT, RUN_DIR, SOCKET_PATH, OFFICE_URL };

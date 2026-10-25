@@ -1,12 +1,12 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const { spawn, execFileSync } = require('node:child_process');
-const { ROOT, RUN_DIR } = require('./runtime-config');
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawn, execFileSync } from 'node:child_process';
+import { ROOT, RUN_DIR } from './runtime-config.js';
 
 const CLI = path.join(ROOT, 'bin', 'cat-agents-codex-adapter.js');
 const COMMANDS = ['office', 'start'];
 
-function ownedProcess(command) {
+export function ownedProcess(command) {
   const file = path.join(RUN_DIR, `${command}.pid`);
   let pid;
   try { pid = Number(fs.readFileSync(file, 'utf8')); } catch { return null; }
@@ -17,7 +17,7 @@ function ownedProcess(command) {
   } catch { return null; }
 }
 
-function launchLive() {
+export function launchLive() {
   fs.mkdirSync(RUN_DIR, { recursive: true, mode: 0o700 });
   const result = [];
   for (const command of COMMANDS) {
@@ -36,7 +36,7 @@ function launchLive() {
   return result;
 }
 
-function stopLive() {
+export function stopLive() {
   const result = [];
   for (const command of [...COMMANDS].reverse()) {
     const pid = ownedProcess(command);
@@ -47,5 +47,3 @@ function stopLive() {
   }
   return result;
 }
-
-module.exports = { launchLive, stopLive, ownedProcess };

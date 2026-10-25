@@ -1,12 +1,12 @@
-const fs = require('node:fs');
-const net = require('node:net');
-const path = require('node:path');
-const { SessionStateMachine } = require('./state');
-const { publishSnapshot } = require('./cat-office-client');
-const { findDesktopProcess } = require('./codex-process');
-const { SOCKET_PATH, OFFICE_URL, localToken } = require('./runtime-config');
+import fs from 'node:fs';
+import net from 'node:net';
+import path from 'node:path';
+import { SessionStateMachine } from './state.js';
+import { publishSnapshot } from './cat-office-client.js';
+import { findDesktopProcess } from './codex-process.js';
+import { SOCKET_PATH, OFFICE_URL, localToken } from './runtime-config.js';
 
-class Adapter {
+export class Adapter {
   constructor({ processFinder = findDesktopProcess, publish = publishSnapshot,
                 socketPath = SOCKET_PATH, officeUrl = OFFICE_URL, token = localToken(),
                 processPollMs = 1000, heartbeatMs = 5000 } = {}) {
@@ -128,5 +128,3 @@ class Adapter {
     try { fs.unlinkSync(this.socketPath); } catch (error) { if (error.code !== 'ENOENT') throw error; }
   }
 }
-
-module.exports = { Adapter };

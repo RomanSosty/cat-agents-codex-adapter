@@ -6,7 +6,7 @@ function localUrl(value) {
   return url;
 }
 
-async function publishSnapshot(sessions, { url, token, timeoutMs = 1000 }) {
+export async function publishSnapshot(sessions, { url, token, timeoutMs = 1000 }) {
   if (typeof token !== 'string' || !token) throw new TypeError('A local token is required');
   const target = localUrl(url);
   const response = await fetch(target, {
@@ -17,5 +17,3 @@ async function publishSnapshot(sessions, { url, token, timeoutMs = 1000 }) {
   });
   if (!response.ok) throw new Error(`Cat Office rejected snapshot: HTTP ${response.status}`);
 }
-
-module.exports = { publishSnapshot };

@@ -1,12 +1,12 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
-const { sanitizeHookEvent } = require('../src/hook-event');
-const { editHooks } = require('../src/hook-install');
-const { parseProcesses, desktopProcess } = require('../src/codex-process');
-const { Adapter } = require('../src/receiver');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { sanitizeHookEvent } from '../src/hook-event.js';
+import { editHooks } from '../src/hook-install.js';
+import { parseProcesses, desktopProcess } from '../src/codex-process.js';
+import { Adapter } from '../src/receiver.js';
 
 test('hook strips content but preserves event identity and input correlation', () => {
   const event = sanitizeHookEvent({

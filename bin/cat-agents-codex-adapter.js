@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-const path = require('node:path');
-const { editHooks } = require('../src/hook-install');
-const { ROOT, localToken } = require('../src/runtime-config');
+import path from 'node:path';
+import { editHooks } from '../src/hook-install.js';
+import { ROOT, localToken } from '../src/runtime-config.js';
 
 async function main() {
   const command = process.argv[2];
@@ -11,7 +11,7 @@ async function main() {
     return;
   }
   if (command === 'launch' || command === 'stop-live') {
-    const { launchLive, stopLive } = require('../src/live-processes');
+    const { launchLive, stopLive } = await import('../src/live-processes.js');
     console.log((command === 'launch' ? launchLive() : stopLive()).join('\n'));
     return;
   }
@@ -23,7 +23,7 @@ async function main() {
     return;
   }
   if (command === 'start') {
-    const { Adapter } = require('../src/receiver');
+    const { Adapter } = await import('../src/receiver.js');
     const adapter = new Adapter();
     await adapter.start();
     let stopping = false;

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Codex launches this for each event. No prompt, command, or tool result leaves this process.
-const net = require('node:net');
-const { SOCKET_PATH } = require('./runtime-config');
-const { sanitizeHookEvent } = require('./hook-event');
+import net from 'node:net';
+import { SOCKET_PATH } from './runtime-config.js';
+import { sanitizeHookEvent } from './hook-event.js';
 
 const occurredAt = new Date().toISOString();
 let raw = '';
