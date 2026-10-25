@@ -5,6 +5,12 @@
   "type": "commonjs",
   "engines": { "node": ">=20" },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "office:live": "node bin/cat-agents-codex-adapter.js office",
+    "adapter:start": "node bin/cat-agents-codex-adapter.js start",
+    "live:start": "node bin/cat-agents-codex-adapter.js launch",
+    "live:stop": "node bin/cat-agents-codex-adapter.js stop-live",
+    "hooks:install": "node bin/cat-agents-codex-adapter.js install-hooks",
+    "hooks:remove": "node bin/cat-agents-codex-adapter.js remove-hooks"
   }
 }

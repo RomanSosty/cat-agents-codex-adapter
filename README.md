@@ -1,6 +1,28 @@
 # cat-agents-codex-adapter
 
-Rozpracovaný adaptér pro zobrazení lokálních relací Codex desktopu v Cat Office. Zpracování hooků, sledování procesu a stavový automat jsou implementované a testované. Napojení na Cat Office zatím závisí na přijímacím API, které není dohodnuté ani vydané v balíčku `cat-agents`.
+Adaptér propojuje lokální relace Codex desktopu s Cat Office, aby se v kanceláři zobrazovaly jako kočky. Současné živé spuštění používá místní upravenou kopii `cat-agents@1.0.1` v `vendor/`; přijímací API zatím není dohodnuté ani vydané v původním npm balíčku.
+
+## Živé spuštění
+
+Vyžaduje Node.js 20+, macOS, volný port `127.0.0.1:4317` a místní kopii Cat Office v `vendor/cat-agents/`. V kořeni projektu spusťte:
+
+```sh
+npm run live:start
+npm run hooks:install
+```
+
+První příkaz spustí Cat Office a adaptér jako samostatné lokální procesy. Druhý přidá sedm hooků do `~/.codex/hooks.json`, zachová ostatní hooky a před změnou vytvoří zálohu. V Codex CLI otevřete `/hooks` a potvrďte důvěru pro nové definice. Poté restartujte Codex desktop a otevřete [http://127.0.0.1:4317](http://127.0.0.1:4317).
+
+Přijímač používá unixový socket `run/adapter.sock`; Cat Office přijímá snapshoty pouze z loopbacku s místním tokenem. Hook posílá názvy událostí, identifikátory relací a nástrojů a potřebná metadata. Obsah promptů, vstupů nástrojů a odpovědí se nepřenáší. Vstup nástroje se používá pouze k výpočtu otisku pro párování událostí.
+
+Pro odstranění instalovaných hooků a ukončení procesů:
+
+```sh
+npm run hooks:remove
+npm run live:stop
+```
+
+Po odstranění hooků znovu načtěte konfiguraci restartem Codex desktopu. Logy procesů jsou v `run/office.log` a `run/start.log`.
 
 ## Ověření
 
@@ -14,6 +36,4 @@ Testy ověřují převod událostí na stavy relací, souběžné a opožděné 
 
 ## Stav integrace
 
-Adaptér přijímá vybraná metadata z hooků Codexu přes místní unixový socket a sestavuje úplný snapshot relací. Klient pro odeslání snapshotu cílí na navržený endpoint `PUT /api/external-sources/codex/sessions`. Tento endpoint zatím není součástí vydaného `cat-agents`, proto aktuální verze neposkytuje podporovaný postup pro živé spuštění ani instalaci hooků.
-
-Po dohodnutí a vydání přijímacího API bude možné doplnit závislost na Cat Office a postup instalace. Místní pokusná kopie Cat Office v `vendor/` není součástí projektu určeného ke commitu.
+Klient odesílá snapshot na navržený endpoint `PUT /api/external-sources/codex/sessions`. Ten existuje pouze v místní kopii Cat Office v `vendor/`. Pokud ji do Gitu nezařadíte, čtenář repozitáře nebude moci živé spuštění podle tohoto návodu použít, dokud nebude API vydané a nahrazené běžnou závislostí.
